@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self' https://cdn.jsdelivr.net; connect-src https://osxwermyqclgdcueksik.supabase.co wss://osxwermyqclgdcueksik.supabase.co; frame-src 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Inventario · Eastside Pub &amp; Steakhouse</title>
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="theme-color" content="#282A28">
+<link rel="icon" href="assets/logo-quadrato.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  /* ---- specifico della pagina inventario (tablet) ---- */
+  :root { --danger: #b5472a; --ok: #2f7d27; --warn: #a9701f; --ink: #20221f; --ink-2: #4a4e46; --line-l: #d9dcd3; }
+  body { background: #f3f4ef; color: var(--ink); }
+  [hidden] { display: none !important; }
+  .inv-top { position: sticky; top: 0; z-index: 40; background: #282A28; color: #fff;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 16px;
+    border-bottom: 1px solid rgba(255,255,255,.12); }
+  .inv-top .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .inv-top .brand img { width: 84px; height: auto; display: block; }
+  .inv-top .who { font-size: 13px; opacity: .85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .inv-top .who b { display: block; font-family: var(--font-display, Oswald), sans-serif; font-size: 15px; }
+  .linkbtn { background: transparent; border: 1px solid rgba(255,255,255,.3); color: #fff; border-radius: 10px;
+    padding: 10px 14px; min-height: 44px; font: inherit; font-size: 14px; cursor: pointer; }
+  .linkbtn:active { transform: scale(.97); }
+
+  .wrap-i { max-width: 920px; margin: 0 auto; padding: 16px; }
+  .h-i { font-family: var(--font-display, Oswald), sans-serif; font-size: clamp(22px, 4vw, 30px); margin: 4px 0 6px; color: var(--ink); }
+  .sub-i { color: var(--ink-2); font-size: 15px; margin: 0 0 14px; }
+  .testa-i { display: flex; align-items: center; gap: 10px 12px; flex-wrap: wrap; margin-bottom: 4px; }
+  .testa-i .h-i { margin: 0; }
+  .testa-i .az { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* login */
+  .login-card { max-width: 400px; margin: 12vh auto 0; background: #fff; border-radius: 18px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.18); padding: 28px; }
+  .login-card h1 { font-family: var(--font-display, Oswald), sans-serif; font-size: 26px; margin: 0 0 4px; color: var(--ink); }
+  .login-card p.sub { color: var(--ink-2); margin: 0 0 20px; font-size: 14px; }
+  .fld { margin-bottom: 14px; }
+  .fld label { display: block; font-size: 13px; color: var(--ink-2); margin-bottom: 6px; }
+  .fld input, .fld select, .fld textarea { width: 100%; box-sizing: border-box; padding: 13px 14px; min-height: 48px;
+    border: 1px solid var(--line-l); border-radius: 12px; font: inherit; font-size: 16px; background: #fff; color: var(--ink); }
+  .fld input:focus, .fld select:focus, .fld textarea:focus { outline: none; border-color: #282A28; }
+  .fld .aiuto { font-size: 13px; color: var(--ink-2); margin: 6px 0 0; }
+  .fld.chk label { display: flex; align-items: center; gap: 10px; font-size: 16px; color: var(--ink); margin: 0; min-height: 48px; }
+  .fld.chk input { width: 24px; height: 24px; min-height: 0; flex: none; }
+  .btn-full { width: 100%; justify-content: center; }
+  .msg-err { color: var(--danger); font-size: 14px; min-height: 1.2em; margin: 6px 0 0; }
+
+  /* schede (titolare) */
+  .tabs { display: flex; gap: 8px; margin: 0 0 14px; flex-wrap: wrap; }
+  .tab { min-height: 48px; padding: 10px 18px; border: 1px solid var(--line-l); border-radius: 999px; background: #fff;
+    font: inherit; font-size: 15px; color: var(--ink-2); cursor: pointer; }
+  .tab[aria-selected="true"] { background: #282A28; border-color: #282A28; color: #fff; }
+
+  /* avanzamento e filtri */
+  .progress { background: #fff; border: 1px solid var(--line-l); border-radius: 14px; padding: 12px 14px; margin-bottom: 12px; }
+  .progress .row { display: flex; justify-content: space-between; gap: 10px; font-size: 15px; color: var(--ink); }
+  .progress .bar { height: 10px; background: #e5e7de; border-radius: 99px; margin-top: 8px; overflow: hidden; }
+  .progress .bar i { display: block; height: 100%; background: var(--ok); width: 0; transition: width .2s; }
+  .filtri { background: #f3f4ef; padding: 6px 0 10px; }
+  @media (min-height: 700px) { .filtri.fissa { position: sticky; top: 64px; z-index: 30; } }
+  .filtri input[type=search] { width: 100%; box-sizing: border-box; min-height: 52px; padding: 10px 14px; margin-bottom: 8px;
+    border: 1px solid var(--line-l); border-radius: 12px; font: inherit; font-size: 17px; background: #fff; color: var(--ink); }
+  .cerca-riga { display: flex; gap: 8px; margin-bottom: 8px; }
+  .cerca-riga input[type=search] { margin-bottom: 0; flex: 1; min-width: 0; }
+  .cerca-riga .btn-s { flex: none; min-height: 52px; }
+  .btn-s[aria-pressed="true"] { background: #282A28; border-color: #282A28; color: #fff; }
+  .fil { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .fil-t { flex: none; width: 74px; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-2); }
+  .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; flex: 1; min-width: 0; }
+  .chips { scrollbar-width: none; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chips button { flex-shrink: 0; min-height: 44px; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line-l);
+    background: #fff; font: inherit; font-size: 14px; color: var(--ink-2); cursor: pointer; }
+  .chips button[aria-pressed="true"] { background: #282A28; border-color: #282A28; color: #fff; }
+  .chips button .n { opacity: .75; margin-left: 4px; }
+
+  .gruppo-h { font-family: var(--font-display, Oswald), sans-serif; font-size: 15px; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--ink-2); margin: 18px 0 8px; }
+  .riga { display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid var(--line-l); border-radius: 14px;
+    padding: 10px 12px; margin-bottom: 8px; }
+  .riga.fatto { border-color: #b9d6b4; }
+  .riga.errore { border-color: var(--danger); background: #fff6f3; }
+  .riga .nm { flex: 1; min-width: 0; font-size: 17px; line-height: 1.25; color: var(--ink); }
+  .riga .nm small { display: block; font-size: 13px; color: var(--ink-2); margin-top: 2px; }
+  .riga .nm small.err { color: var(--danger); }
+  .riga .qta { display: flex; align-items: center; gap: 6px; }
+  .riga .qta input { width: 84px; min-height: 52px; text-align: center; padding: 8px 6px; font: inherit; font-size: 22px; font-weight: 600;
+    border: 2px solid var(--line-l); border-radius: 12px; background: #fff; color: var(--ink); }
+  .riga .qta input:focus { outline: none; border-color: #282A28; }
+  .riga .qta .pm { width: 52px; height: 52px; flex: none; border-radius: 12px; border: 1px solid #b9bdb1; background: #fff; color: var(--ink);
+    font: inherit; font-size: 28px; line-height: 1; cursor: pointer; touch-action: manipulation; user-select: none; }
+  .riga .qta .pm.piu { background: #282A28; border-color: #282A28; color: #fff; }
+  .riga .qta .pm:active { transform: scale(.94); }
+  .riga .qta .u { min-width: 48px; font-size: 14px; color: var(--ink-2); }
+  .riga .stato { width: 20px; text-align: center; font-size: 18px; }
+  .riga .stato.ok { color: var(--ok); }
+  .riga .stato.ko { color: var(--danger); }
+
+  .barra-fondo { position: sticky; bottom: 0; z-index: 35; background: #282A28; color: #fff; margin: 16px -16px -16px;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .barra-fondo .grow { flex: 1; font-size: 15px; min-width: 150px; }
+  .barra-fondo select { min-height: 48px; border-radius: 10px; border: none; padding: 0 10px; font: inherit; font-size: 15px; max-width: 100%; }
+  .btn-p { background: #4BAD3D; color: #0d0f0d; border: none; border-radius: 12px; padding: 0 22px; min-height: 52px;
+    font: inherit; font-weight: 700; font-size: 16px; cursor: pointer; }
+  .btn-p:disabled { opacity: .45; cursor: not-allowed; }
+  .btn-s { background: #fff; color: var(--ink); border: 1px solid #b9bdb1; border-radius: 12px; padding: 0 18px; min-height: 48px;
+    font: inherit; font-size: 15px; cursor: pointer; }
+  .btn-s.on { background: #282A28; border-color: #282A28; color: #fff; }
+  .btn-d { background: #fff; color: var(--danger); border: 1px solid var(--danger); border-radius: 12px; padding: 0 18px; min-height: 48px;
+    font: inherit; font-size: 15px; cursor: pointer; }
+  .btn-d.conferma { background: var(--danger); color: #fff; font-weight: 700; }
+  button:disabled { cursor: not-allowed; }
+
+  .card-i { background: #fff; border: 1px solid var(--line-l); border-radius: 16px; padding: 16px; margin-bottom: 14px; }
+  .card-i h2 { font-family: var(--font-display, Oswald), sans-serif; font-size: 20px; margin: 0 0 8px; color: var(--ink); }
+  .vuoto { color: var(--ink-2); padding: 22px 8px; text-align: center; }
+  .vuoto .btn-p { margin-top: 12px; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 13px; font-weight: 600; }
+  .badge.rosso { background: #fbe4dd; color: #8a2f17; }
+  .badge.giallo { background: #fcefd2; color: #7a5210; }
+  .badge.verde { background: #dff0db; color: #24621d; }
+  .badge.grigio { background: #e8e9e2; color: #4a4e46; }
+
+  .lista-inv { list-style: none; margin: 0; padding: 0; }
+  .lista-inv li button { width: 100%; text-align: left; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; min-height: 64px;
+    background: #fff; border: 1px solid var(--line-l); border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; font: inherit; color: var(--ink); cursor: pointer; }
+  .lista-inv .quando { font-weight: 600; font-size: 17px; }
+  .lista-inv .chi { color: var(--ink-2); font-size: 15px; }
+  .lista-inv .conta { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
+
+  .ordine-f { border-top: 1px solid #ecede6; padding: 10px 0; }
+  .ordine-f:first-of-type { border-top: none; }
+  .ordine-f h3 { margin: 0 0 6px; font-size: 17px; color: var(--ink); }
+  .ordine-f .tel { color: var(--ink-2); font-size: 14px; font-weight: 400; }
+  .ordine-r { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; font-size: 16px; color: var(--ink); }
+  .ordine-r .dx { text-align: right; color: var(--ink-2); }
+
+  .tabella-r { width: 100%; border-collapse: collapse; font-size: 15px; }
+  .tabella-r th { text-align: left; font-size: 13px; color: var(--ink-2); font-weight: 600; padding: 6px 6px; border-bottom: 1px solid var(--line-l); }
+  .tabella-r td { padding: 9px 6px; border-bottom: 1px solid #ecede6; color: var(--ink); vertical-align: top; }
+  .tabella-r td.num, .tabella-r th.num { text-align: right; white-space: nowrap; }
+
+  /* elenchi del titolare (prodotti, categorie, fornitori, utenti) */
+  .voce { display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid var(--line-l); border-radius: 14px; padding: 10px 14px;
+    margin-bottom: 8px; min-height: 64px; width: 100%; text-align: left; font: inherit; color: var(--ink); cursor: pointer; box-sizing: border-box; }
+  .voce.arch { opacity: .6; }
+  .voce.sel { border-color: #282A28; box-shadow: 0 0 0 1px #282A28 inset; }
+  .voce .nm { flex: 1; min-width: 0; font-size: 17px; }
+  .voce .nm small { display: block; font-size: 13px; color: var(--ink-2); margin-top: 2px; }
+  .voce .cb { width: 26px; height: 26px; flex: none; accent-color: #282A28; }
+  .voce .dx { color: var(--ink-2); font-size: 14px; flex: none; }
+  .form-g { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+  .form-g .pieno { grid-column: 1 / -1; }
+  .azioni-f { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+  .azioni-f .sx { margin-right: auto; }
+
+  .offline { background: #b5472a; color: #fff; text-align: center; padding: 8px 12px; font-size: 14px; }
+  :focus-visible { outline: 3px solid #4bad3d; outline-offset: 3px; }
+  @media (max-width: 640px) {
+    .inv-top { padding: 8px 10px; }
+    .inv-top .brand img { width: 64px; }
+    .wrap-i { padding: 10px; }
+    .barra-fondo { margin: 16px -10px -10px; }
+    .barra-fondo .grow { flex-basis: 100%; }
+    .barra-fondo .btn-p, .barra-fondo .btn-s { flex: 1; }
+    .form-g { grid-template-columns: 1fr; }
+    .login-card { margin-top: 6vh; padding: 22px 18px; }
+    .riga { flex-wrap: wrap; }
+    .riga .nm { flex-basis: 100%; }
+    .riga .qta { flex: 1; justify-content: space-between; }
+    .riga .qta input { flex: 1; width: auto; min-width: 60px; }
+    .fil-t { display: none; }
+    .tab { padding: 10px 14px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<header class="inv-top" id="invTop" hidden>
+  <div class="brand">
+    <img src="assets/logo-quadrato.svg" alt="Eastside">
+    <div class="who"><b>Inventario</b><span id="whoName">—</span></div>
+  </div>
+  <button class="linkbtn" id="btnEsci" type="button">Esci</button>
+</header>
+<div class="offline" id="bannerOffline" role="status" hidden>Connessione assente: le quantità non vengono salvate finché non torna la rete.</div>
+
+<main>
+<!-- ===== LOGIN ===== -->
+<section id="vLogin">
+  <div class="login-card">
+    <h1>Inventario</h1>
+    <p class="sub">Entra con il tuo account personale. Il tuo nome verrà registrato nell'inventario.</p>
+    <form id="formLogin" autocomplete="on">
+      <div class="fld">
+        <label for="email">Email</label>
+        <input id="email" type="email" inputmode="email" autocomplete="username" required>
+      </div>
+      <div class="fld">
+        <label for="pw">Password</label>
+        <input id="pw" type="password" autocomplete="current-password" required>
+      </div>
+      <button class="btn btn-full" id="btnLogin" type="submit"><span>Entra</span></button>
+      <p class="msg-err" id="errLogin" role="alert"></p>
+    </form>
+  </div>
+</section>
+
+<!-- ===== SCHEDE ===== -->
+<section id="vSchede" class="wrap-i" hidden>
+  <div class="tabs" role="tablist" aria-label="Sezioni inventario" id="tabs" hidden>
+    <button class="tab" role="tab" id="tabConta" type="button" aria-selected="true">Conta</button>
+    <button class="tab" role="tab" id="tabStorico" type="button" aria-selected="false">Inventari fatti</button>
+    <button class="tab" role="tab" id="tabProdotti" type="button" aria-selected="false">Materie prime</button>
+    <button class="tab" role="tab" id="tabCategorie" type="button" aria-selected="false">Categorie</button>
+    <button class="tab" role="tab" id="tabFornitori" type="button" aria-selected="false">Fornitori</button>
+    <button class="tab" role="tab" id="tabUtenti" type="button" aria-selected="false">Utenti</button>
+  </div>
+
+  <!-- ===== CONTA ===== -->
+  <div id="pConta">
+    <div id="contaPartenza" hidden>
+      <h2 class="h-i">Inventario</h2>
+      <p class="sub-i" id="contaPartenzaTesto">Nessun inventario in corso.</p>
+      <p class="msg-err" id="errAvvia" role="alert"></p>
+      <button class="btn-p" id="btnAvvia" type="button">Inizia un nuovo inventario</button>
+    </div>
+
+    <div id="contaElenco" hidden>
+      <h2 class="h-i">Inventario in corso</h2>
+      <p class="sub-i" id="contaIntestazione"></p>
+      <div class="progress" aria-live="polite">
+        <div class="row"><span id="progTesto">0 di 0 contati</span><span id="progPerc">0%</span></div>
+        <div class="bar"><i id="progBarra"></i></div>
+      </div>
+      <div class="filtri fissa">
+        <div class="cerca-riga">
+          <input type="search" id="cerca" placeholder="Cerca un prodotto…" aria-label="Cerca un prodotto" autocomplete="off">
+          <button class="btn-s" id="btnDaContare" type="button" aria-pressed="false">Da contare</button>
+        </div>
+        <div class="fil"><span class="fil-t">Categoria</span><div class="chips" id="chipCategorie" role="group" aria-label="Filtra per categoria"></div></div>
+        <div class="fil"><span class="fil-t">Fornitore</span><div class="chips" id="chipFornitori" role="group" aria-label="Filtra per fornitore"></div></div>
+      </div>
+      <div id="righe"></div>
+      <div class="barra-fondo">
+        <div class="grow" id="barraTesto">Conta tutti i prodotti per poter salvare.</div>
+        <button class="btn-s" id="btnAggiorna" type="button">Aggiorna</button>
+        <button class="btn-p" id="btnControlla" type="button" disabled>Controlla e salva</button>
+      </div>
+    </div>
+
+    <div id="contaRiepilogo" hidden>
+      <h2 class="h-i">Controlla prima di salvare</h2>
+      <p class="sub-i" id="riepTesto"></p>
+      <div class="card-i" id="riepZero" hidden>
+        <h2>Prodotti contati a zero</h2>
+        <p class="sub-i" style="margin-bottom:8px">Controlla che siano davvero finiti.</p>
+        <div id="riepZeroLista"></div>
+      </div>
+      <div class="fld">
+        <label for="noteInv">Note (facoltative)</label>
+        <textarea id="noteInv" rows="2" maxlength="500" placeholder="Es. cella frigo chiusa, bottiglie rotte…"></textarea>
+      </div>
+      <p class="msg-err" id="errSalva" role="alert"></p>
+      <div class="azioni-f">
+        <button class="btn-s" id="btnRiepIndietro" type="button">Torna alla conta</button>
+        <button class="btn-p" id="btnSalvaInv" type="button">Salva inventario</button>
+      </div>
+    </div>
+
+    <div id="contaFatto" hidden>
+      <div class="card-i">
+        <h2>Inventario salvato</h2>
+        <p class="sub-i" id="fattoTesto" style="margin:0 0 12px"></p>
+        <button class="btn-p" id="btnFattoOk" type="button">Chiudi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== STORICO ===== -->
+  <div id="pStorico" hidden>
+    <div id="storicoElenco">
+      <h2 class="h-i">Inventari fatti</h2>
+      <p class="sub-i">Chi li ha fatti, quando, e cosa manca.</p>
+      <p class="msg-err" id="errStorico" role="alert"></p>
+      <ul class="lista-inv" id="storicoLista"></ul>
+      <button class="btn-s" id="btnAltri" type="button" hidden>Carica altri</button>
+    </div>
+    <div id="storicoDettaglio" hidden></div>
+  </div>
+
+  <!-- ===== PRODOTTI ===== -->
+  <div id="pProdotti" hidden>
+    <div id="prodElenco">
+      <div class="testa-i">
+        <h2 class="h-i">Materie prime</h2>
+        <div class="az">
+          <button class="btn-s" id="btnSeleziona" type="button" aria-pressed="false">Seleziona</button>
+          <button class="btn-p" id="btnNuovoProd" type="button">+ Nuovo prodotto</button>
+        </div>
+      </div>
+      <p class="sub-i">Ciò che si compra e si conta (non i piatti e i cocktail del menù): bottiglie, mixer, carne, verdure… Con «Seleziona» puoi spostare, cambiare fornitore o eliminare più voci insieme.</p>
+      <p class="msg-err" id="errProd" role="alert"></p>
+      <div class="filtri">
+        <input type="search" id="prodCerca" placeholder="Cerca un prodotto…" aria-label="Cerca un prodotto" autocomplete="off">
+        <div class="fil"><span class="fil-t">Categoria</span><div class="chips" id="prodChipCategorie" role="group" aria-label="Filtra per categoria"></div></div>
+        <div class="fil"><span class="fil-t">Fornitore</span><div class="chips" id="prodChipFornitori" role="group" aria-label="Filtra per fornitore"></div></div>
+      </div>
+      <div id="prodLista"></div>
+      <div class="barra-fondo" id="prodBarra" hidden>
+        <div class="grow" id="prodBarraTesto">0 selezionati</div>
+        <button class="btn-s" id="btnSelTutti" type="button">Tutti quelli visibili</button>
+        <select id="bulkTipo" aria-label="Azione da applicare">
+          <option value="categoria">Sposta in categoria…</option>
+          <option value="fornitore">Assegna fornitore…</option>
+          <option value="unita">Cambia unità…</option>
+        </select>
+        <select id="bulkValore" aria-label="Valore da applicare"></select>
+        <button class="btn-p" id="btnBulkApplica" type="button">Applica</button>
+        <button class="btn-d" id="btnBulkElimina" type="button">Elimina</button>
+      </div>
+    </div>
+    <div id="prodForm" hidden>
+      <h2 class="h-i" id="prodFormTitolo">Nuovo prodotto</h2>
+      <div class="card-i">
+        <div class="form-g">
+          <div class="fld pieno"><label for="pNome">Nome</label><input id="pNome" maxlength="120" autocomplete="off"></div>
+          <div class="fld"><label for="pUnita">Unità di misura</label>
+            <select id="pUnita">
+              <option value="pz">Pezzi</option><option value="bottiglie">Bottiglie</option><option value="fusti">Fusti</option>
+              <option value="confezioni">Confezioni</option><option value="scatole">Scatole</option><option value="porzione">Porzioni</option>
+              <option value="kg">Kg</option><option value="g">Grammi</option><option value="l">Litri</option><option value="ml">Millilitri</option>
+            </select></div>
+          <div class="fld"><label for="pSoglia">Soglia minima (riordino)</label><input id="pSoglia" inputmode="decimal" autocomplete="off" placeholder="0 = nessuna soglia"></div>
+          <div class="fld"><label for="pCategoria">Categoria</label><select id="pCategoria"></select></div>
+          <div class="fld" id="pCategoriaNuovaBox" hidden><label for="pCategoriaNuova">Nome della nuova categoria</label><input id="pCategoriaNuova" maxlength="60" autocomplete="off"></div>
+          <div class="fld"><label for="pFornitore">Fornitore</label><select id="pFornitore"></select></div>
+          <div class="fld" id="pFornitoreNuovoBox" hidden><label for="pFornitoreNuovo">Nome del nuovo fornitore</label><input id="pFornitoreNuovo" maxlength="120" autocomplete="off"></div>
+          <div class="fld chk pieno"><label><input type="checkbox" id="pAttivo"> Includi nell'inventario</label></div>
+        </div>
+        <p class="msg-err" id="errProdForm" role="alert"></p>
+        <div class="azioni-f">
+          <button class="btn-d sx" id="btnProdElimina" type="button" hidden>Elimina</button>
+          <button class="btn-s" id="btnProdAnnulla" type="button">Annulla</button>
+          <button class="btn-p" id="btnProdSalva" type="button">Salva</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CATEGORIE ===== -->
+  <div id="pCategorie" hidden>
+    <div id="catElenco">
+      <div class="testa-i">
+        <h2 class="h-i">Categorie</h2>
+        <div class="az"><button class="btn-p" id="btnNuovaCat" type="button">+ Nuova categoria</button></div>
+      </div>
+      <p class="sub-i">Per esempio bar, cella, dispensa, cucina. I dipendenti le usano per trovare i prodotti.</p>
+      <p class="msg-err" id="errCat" role="alert"></p>
+      <div id="catLista"></div>
+    </div>
+    <div id="catForm" hidden>
+      <h2 class="h-i" id="catFormTitolo">Nuova categoria</h2>
+      <div class="card-i">
+        <div class="fld"><label for="cNome">Nome</label><input id="cNome" maxlength="60" autocomplete="off"></div>
+        <p class="msg-err" id="errCatForm" role="alert"></p>
+        <div class="azioni-f">
+          <button class="btn-d sx" id="btnCatElimina" type="button" hidden>Elimina</button>
+          <button class="btn-s" id="btnCatAnnulla" type="button">Annulla</button>
+          <button class="btn-p" id="btnCatSalva" type="button">Salva</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== FORNITORI ===== -->
+  <div id="pFornitori" hidden>
+    <div id="forElenco">
+      <div class="testa-i">
+        <h2 class="h-i">Fornitori</h2>
+        <div class="az"><button class="btn-p" id="btnNuovoFor" type="button">+ Nuovo fornitore</button></div>
+      </div>
+      <p class="sub-i">Da chi compri i prodotti. Nell'inventario ti dicono chi chiamare per riordinare.</p>
+      <p class="msg-err" id="errFor" role="alert"></p>
+      <div id="forLista"></div>
+    </div>
+    <div id="forForm" hidden>
+      <h2 class="h-i" id="forFormTitolo">Nuovo fornitore</h2>
+      <div class="card-i">
+        <div class="form-g">
+          <div class="fld pieno"><label for="fNome">Nome</label><input id="fNome" maxlength="120" autocomplete="off"></div>
+          <div class="fld pieno"><label for="fTel">Telefono (facoltativo)</label><input id="fTel" type="tel" inputmode="tel" maxlength="40" autocomplete="off"></div>
+        </div>
+        <p class="msg-err" id="errForForm" role="alert"></p>
+        <div class="azioni-f">
+          <button class="btn-d sx" id="btnForElimina" type="button" hidden>Elimina</button>
+          <button class="btn-s" id="btnForAnnulla" type="button">Annulla</button>
+          <button class="btn-p" id="btnForSalva" type="button">Salva</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== UTENTI ===== -->
+  <div id="pUtenti" hidden>
+    <div id="utElenco">
+      <div class="testa-i">
+        <h2 class="h-i">Utenti</h2>
+        <div class="az"><button class="btn-p" id="btnNuovoUt" type="button">+ Nuovo utente</button></div>
+      </div>
+      <p class="sub-i">I dipendenti che possono fare l'inventario da tablet con il proprio account.</p>
+      <p class="msg-err" id="errUt" role="alert"></p>
+      <div id="utLista"></div>
+    </div>
+    <div id="utForm" hidden>
+      <h2 class="h-i" id="utFormTitolo">Nuovo utente</h2>
+      <div class="card-i">
+        <div class="form-g">
+          <div class="fld pieno"><label for="uNome">Nome e cognome</label><input id="uNome" maxlength="60" autocomplete="off" placeholder="Es. Mario Rossi">
+            <p class="aiuto">È il nome che il titolare vedrà negli inventari. Se lo lasci vuoto si ricava dall'email.</p></div>
+          <div class="fld pieno" id="uEmailBox"><label for="uEmail">Email</label><input id="uEmail" type="email" inputmode="email" maxlength="120" autocomplete="off"></div>
+          <div class="fld pieno" id="uPwBox"><label for="uPw">Password (almeno 8 caratteri)</label><input id="uPw" type="password" maxlength="72" autocomplete="new-password">
+            <p class="aiuto"><label style="display:inline-flex;gap:8px;align-items:center;margin:0"><input type="checkbox" id="uPwMostra" style="width:20px;height:20px;min-height:0"> Mostra la password</label></p></div>
+          <div class="fld chk pieno"><label><input type="checkbox" id="uInventario"> Può fare l'inventario</label></div>
+        </div>
+        <p class="msg-err" id="errUtForm" role="alert"></p>
+        <div class="azioni-f">
+          <button class="btn-d sx" id="btnUtElimina" type="button" hidden>Elimina utente</button>
+          <button class="btn-s" id="btnUtAnnulla" type="button">Annulla</button>
+          <button class="btn-p" id="btnUtSalva" type="button">Salva</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<script src="assets/ui.js"></script>
+<script src="assets/access.js"></script>
+<script src="assets/db.js"></script>
+<script src="assets/inventario-conta.js"></script>
+<script src="assets/inventario-titolare.js"></script>
+<script src="assets/inventario-catalogo.js"></script>
+<script src="assets/inventario-utenti.js"></script>
+<script src="assets/inventario-app.js"></script>
+</body>
+</html>
