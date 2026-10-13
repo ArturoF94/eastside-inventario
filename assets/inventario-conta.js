@@ -354,6 +354,7 @@
         pulsante.disabled = false;
         $('#noteInv').value = '';
         txt($('#fattoTesto'), 'Grazie! Il titolare può vedere subito chi l\'ha fatto, quando e cosa manca.');
+        txt($('#btnFattoOk'), ctx.stato.titolare ? 'Chiudi' : 'Chiudi e cambia operatore');
         inv = null; righe = [];
         mostraSchermata('contaFatto');
       }).catch(function (errore) {
@@ -396,13 +397,16 @@
     $('#btnControlla').addEventListener('click', controlla);
     $('#btnRiepIndietro').addEventListener('click', function () { mostraSchermata('contaElenco'); });
     $('#btnSalvaInv').addEventListener('click', salvaInventario);
-    $('#btnFattoOk').addEventListener('click', function () { apri(); });
+    $('#btnFattoOk').addEventListener('click', function () {
+      if (ctx.stato.titolare) apri();
+      else ctx.esci('Inventario salvato. Grazie! Il prossimo collega può accedere con il proprio account.');
+    });
     window.addEventListener('beforeunload', function (evento) {
       if (!pendenti()) return;
       evento.preventDefault();
       evento.returnValue = '';
     });
 
-    return { apri: apri, riprovaErrori: riprovaErrori };
+    return { apri: apri, riprovaErrori: riprovaErrori, inSospeso: pendenti };
   };
 })();

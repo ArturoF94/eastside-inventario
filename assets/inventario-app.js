@@ -49,7 +49,8 @@
     dataOra: dataOra,
     messaggio: messaggio,
     confermaInline: confermaInline,
-    notifica: function (testo, tipo) { window.UI.notifica(testo, tipo || 'info'); }
+    notifica: function (testo, tipo, opzioni) { window.UI.notifica(testo, tipo || 'info', opzioni); },
+    esci: function (testo) { uscita(testo); }
   };
 
   moduli.conta = window.InventarioModuli.conta(ctx);
@@ -68,6 +69,68 @@
     fornitori: { tab: '#tabFornitori', pannello: '#pFornitori', apri: function () { return moduli.catalogo.apriFornitori(); } },
     utenti: { tab: '#tabUtenti', pannello: '#pUtenti', apri: function () { return moduli.utenti.apri(); } }
   };
+
+  /* ---------- testata: i filtri fissi si agganciano sotto di essa ---------- */
+  function misuraTestata() {
+    var testata = $('#invTop');
+    if (!testata || testata.hidden) return;
+    document.documentElement.style.setProperty('--alt-testata', testata.offsetHeight + 'px');
+  }
+  window.addEventListener('resize', misuraTestata);
+  if (window.ResizeObserver) new ResizeObserver(misuraTestata).observe($('#invTop'));
+
+  /* ---------- tablet condiviso: nessun inventario a nome di un altro ----------
+     Dopo un periodo senza tocchi la sessione si chiude; se si sta ancora
+     salvando, si aspetta. Il salvataggio di un inventario chiude la sessione
+     di un dipendente (vedi inventario-conta.js). */
+  var INATTIVITA = { dipendente: 10 * 60 * 1000, titolare: 30 * 60 * 1000 };
+  var PREAVVISO = 30 * 1000;
+  var ultimoTocco = Date.now();
+  var preavvisoMostrato = false;
+  var guardia = null;
+  var CHIAVE_MESSAGGIO = 'inventario_messaggio_uscita';
+
+  function segnalaAttivita() { ultimoTocco = Date.now(); preavvisoMostrato = false; }
+  ['pointerdown', 'keydown', 'touchstart', 'scroll'].forEach(function (tipo) {
+    window.addEventListener(tipo, segnalaAttivita, { passive: true, capture: true });
+  });
+
+  function avviaGuardia() {
+    segnalaAttivita();
+    clearInterval(guardia);
+    guardia = setInterval(function () {
+      var limite = stato.titolare ? INATTIVITA.titolare : INATTIVITA.dipendente;
+      var inattivo = Date.now() - ultimoTocco;
+      if (inattivo >= limite) {
+        if (moduli.conta && moduli.conta.inSospeso()) return;   // prima si finisce di salvare
+        uscita('Disconnesso per inattività, per sicurezza. Accedi di nuovo per continuare.');
+      } else if (inattivo >= limite - PREAVVISO && !preavvisoMostrato) {
+        preavvisoMostrato = true;
+        ctx.notifica('Per sicurezza ti disconnetto tra poco per inattività. Tocca lo schermo per restare.', 'warning', { durata: PREAVVISO });
+      }
+    }, 5000);
+  }
+
+  /* Chiude la sessione e torna all'accesso, con un messaggio. */
+  function uscita(testo) {
+    if (moduli.conta && moduli.conta.inSospeso()) {
+      ctx.notifica('Sto ancora salvando le quantità: aspetta un istante e riprova.', 'warning');
+      return;
+    }
+    clearInterval(guardia);
+    DB.logout().then(function () {
+      try { if (testo) sessionStorage.setItem(CHIAVE_MESSAGGIO, testo); } catch (e) { /* ignorato */ }
+      location.reload();
+    });
+  }
+
+  function messaggioUscita() {
+    try {
+      var testo = sessionStorage.getItem(CHIAVE_MESSAGGIO);
+      sessionStorage.removeItem(CHIAVE_MESSAGGIO);
+      return testo || '';
+    } catch (e) { return ''; }
+  }
 
   function mostraLogin(testo) {
     $('#vLogin').hidden = false;
@@ -99,6 +162,8 @@
       $('#vSchede').hidden = false;
       $('#invTop').hidden = false;
       $('#tabs').hidden = !stato.titolare;
+      misuraTestata();
+      avviaGuardia();
       return scegliScheda('conta');
     });
   }
@@ -111,7 +176,7 @@
     DB.init().then(function (riuscita) {
       if (!riuscita) { mostraLogin('Collegamento al database non riuscito.'); return; }
       DB.sessione().then(function (utente) {
-        if (utente) dopoLogin(); else mostraLogin('');
+        if (utente) dopoLogin(); else mostraLogin(messaggioUscita());
       });
     });
   }
@@ -138,9 +203,7 @@
     });
   });
 
-  $('#btnEsci').addEventListener('click', function () {
-    DB.logout().then(function () { location.reload(); });
-  });
+  $('#btnEsci').addEventListener('click', function () { uscita(''); });
 
   Object.keys(SCHEDE).forEach(function (nome) {
     $(SCHEDE[nome].tab).addEventListener('click', function () { scegliScheda(nome); });

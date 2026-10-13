@@ -21,7 +21,7 @@
     var catalogo = [];
     var categorie = [];
     var fornitori = [];
-    var filtri = { ricerca: '', categoria: null, fornitore: null };
+    var filtri = { ricerca: '', categoria: null, fornitore: null, senzaSoglia: false };
     var selezionando = false;
     var selezione = {};
     var prodottoInModifica = null;
@@ -74,7 +74,10 @@
       });
     }
 
+    function senzaSoglia(p) { return p.attivo && !(Number(p.scorta_minima) > 0); }
+
     function prodottoVisibile(p) {
+      if (filtri.senzaSoglia && !senzaSoglia(p)) return false;
       if (filtri.categoria !== null) {
         if (filtri.categoria === SENZA ? !!p.categoria_id : p.categoria_id !== filtri.categoria) return false;
       }
@@ -115,6 +118,7 @@
       chips($('#prodChipFornitori'), 'Tutti', fornitori, 'fornitore_id', filtri.fornitore,
         function (valore) { filtri.fornitore = valore; disegnaProdotti(); }, 'Senza fornitore');
 
+      disegnaAvvisoSoglia();
       var area = $('#prodLista');
       area.textContent = '';
       if (!catalogo.length) {
@@ -132,6 +136,19 @@
         area.appendChild(cartaProdotto(p));
       });
       aggiornaBarra();
+    }
+
+    function disegnaAvvisoSoglia() {
+      var n = catalogo.filter(senzaSoglia).length;
+      var avviso = $('#prodAvviso');
+      avviso.hidden = !n && !filtri.senzaSoglia;
+      if (avviso.hidden) return;
+      txt($('#prodAvvisoTesto'), filtri.senzaSoglia
+        ? 'Stai vedendo solo i prodotti senza soglia minima (' + n + '). Selezionali e imposta la soglia.'
+        : plurale(n, 'prodotto senza soglia minima', 'prodotti senza soglia minima') +
+          ': finché non la imposti, nei prodotti mancanti compaiono solo quelli esauriti.');
+      $('#btnAvvisoSoglia').hidden = filtri.senzaSoglia;
+      $('#btnAvvisoTutti').hidden = !filtri.senzaSoglia;
     }
 
     function cartaProdotto(p) {
@@ -181,6 +198,9 @@
       var sel = $('#bulkValore');
       sel.textContent = '';
       var tipo = $('#bulkTipo').value;
+      $('#bulkValore').hidden = tipo === 'soglia';
+      $('#bulkSoglia').hidden = tipo !== 'soglia';
+      if (tipo === 'soglia') return;
       if (tipo === 'categoria') {
         sel.appendChild(opzione('', 'Senza categoria'));
         categorie.forEach(function (c) { sel.appendChild(opzione(c.id, c.nome)); });
@@ -217,6 +237,53 @@
         txt($('#errProd'), ctx.messaggio(errore, 'Operazione non riuscita. Riprova.'));
         aggiornaBarra();
       });
+    }
+
+    /* La soglia si imposta prodotto per prodotto con la funzione di salvataggio
+       esistente, a gruppi di 8 richieste: l'operazione si può ripetere senza
+       effetti collaterali e si ferma al primo errore dicendo a che punto è. */
+    function impostaSoglia(testo) {
+      var pulito = String(testo || '').trim().replace(',', '.');
+      if (!/^\d+(\.\d{1,3})?$/.test(pulito)) {
+        txt($('#errProd'), 'Scrivi la soglia come numero (es. 6 o 2,5). Con 0 non c\'è soglia.'); return;
+      }
+      var valore = Number(pulito);
+      var scelti = catalogo.filter(function (p) { return selezione[p.id]; });
+      if (!scelti.length) return;
+      txt($('#errProd'), '');
+      var pulsanti = [$('#btnBulkApplica'), $('#btnBulkElimina')];
+      pulsanti.forEach(function (b) { b.disabled = true; });
+      var fatti = 0;
+      function lotto(inizio) {
+        if (inizio >= scelti.length) return Promise.resolve();
+        return Promise.all(scelti.slice(inizio, inizio + 8).map(function (p) {
+          return DB.inventarioProdottoSalva({
+            id: p.id, nome: p.nome, unita: p.unita, categoria_id: p.categoria_id, scorta_minima: valore,
+            fornitore_id: p.fornitore_id, attivo: p.attivo
+          }).then(function () { fatti += 1; txt($('#prodBarraTesto'), 'Aggiorno ' + fatti + ' di ' + scelti.length + '…'); });
+        })).then(function () { return lotto(inizio + 8); });
+      }
+      lotto(0).then(function () {
+        selezione = {};
+        filtri.senzaSoglia = false;
+        ctx.notifica('Soglia ' + (valore > 0 ? 'impostata a ' + numero(valore) : 'tolta') + ' su ' + plurale(fatti, 'prodotto', 'prodotti'), 'success');
+        return apriProdotti();
+      }).catch(function (errore) {
+        txt($('#errProd'), 'Aggiornati ' + fatti + ' di ' + scelti.length + ' prodotti: ' + ctx.messaggio(errore, 'operazione interrotta') + '. Puoi ripetere: i già aggiornati non cambiano.');
+        apriProdotti();
+      });
+    }
+
+    function guidaSoglia() {
+      filtri.senzaSoglia = true;
+      selezionando = true;
+      selezione = {};
+      popolaValoriBulk();
+      $('#bulkTipo').value = 'soglia';
+      popolaValoriBulk();
+      catalogo.filter(prodottoVisibile).forEach(function (p) { selezione[p.id] = true; });
+      disegnaProdotti();
+      $('#bulkSoglia').focus();
     }
 
     /* ---------- scheda prodotto ---------- */
@@ -502,7 +569,14 @@
     });
     $('#bulkTipo').addEventListener('change', popolaValoriBulk);
     $('#btnBulkApplica').addEventListener('click', function () {
-      applicaBulk($('#bulkTipo').value, $('#bulkValore').value);
+      if ($('#bulkTipo').value === 'soglia') impostaSoglia($('#bulkSoglia').value);
+      else applicaBulk($('#bulkTipo').value, $('#bulkValore').value);
+    });
+    $('#btnAvvisoSoglia').addEventListener('click', guidaSoglia);
+    $('#btnAvvisoTutti').addEventListener('click', function () {
+      filtri.senzaSoglia = false;
+      selezione = {};
+      disegnaProdotti();
     });
     ctx.confermaInline($('#btnBulkElimina'), function () {
       return 'Elimina ' + plurale(idSelezionati().length, 'prodotto', 'prodotti') + '?';
