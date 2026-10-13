@@ -27,6 +27,7 @@
     var prodottoInModifica = null;
     var categoriaInModifica = null;
     var fornitoreInModifica = null;
+    var ritornoFornitore = null;   // se la modifica parte dal dettaglio, ci si torna dopo
 
     function normalizza(testo) {
       return String(testo || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -374,6 +375,8 @@
        ============================================================ */
     function apriFornitori() {
       $('#forAssegna').hidden = true;
+      $('#forDettaglio').hidden = true;
+      ritornoFornitore = null;
       chiudiVista('#forElenco', '#forForm');
       txt($('#errFor'), '');
       $('#forLista').textContent = 'Caricamento…';
@@ -402,13 +405,16 @@
         if (contatti) nome.appendChild(el('small', contatti));
         b.appendChild(nome);
         b.appendChild(el('span', plurale(f.prodotti, 'prodotto', 'prodotti'), 'dx'));
-        b.addEventListener('click', function () { apriFormFornitore(f); });
+        b.addEventListener('click', function () { ctx.moduli.fornitore.apri(f.id); });
         area.appendChild(b);
       });
     }
 
-    function apriFormFornitore(fornitore) {
+    function apriFormFornitore(fornitore, ritorno) {
       fornitoreInModifica = fornitore || null;
+      ritornoFornitore = ritorno || null;
+      $('#forDettaglio').hidden = true;
+      $('#forAssegna').hidden = true;
       txt($('#errForForm'), '');
       txt($('#forFormTitolo'), fornitore ? 'Modifica fornitore' : 'Nuovo fornitore');
       $('#fNome').value = fornitore ? fornitore.nome : '';
@@ -433,9 +439,14 @@
       pulsante.disabled = true;
       DB.inventarioFornitoreSalva({
         id: fornitoreInModifica && fornitoreInModifica.id, nome: nome, telefono: $('#fTel').value.trim(), email: email
-      }).then(function () {
+      }).then(function (esito) {
         pulsante.disabled = false;
         ctx.notifica('Fornitore salvato', 'success');
+        if (ritornoFornitore) {
+          var torna = ritornoFornitore;
+          ritornoFornitore = null;
+          return torna(esito && esito.fornitore ? esito.fornitore : fornitoreInModifica.id);
+        }
         return apriFornitori();
       }).catch(function (errore) {
         pulsante.disabled = false;
@@ -448,6 +459,7 @@
       DB.inventarioFornitoreElimina(fornitoreInModifica.id).then(function (esito) {
         ctx.notifica('Fornitore eliminato' + (esito.prodotti_liberati ? ' · ' + plurale(esito.prodotti_liberati, 'prodotto resta', 'prodotti restano') + ' senza fornitore' : ''), 'success');
         if (filtri.fornitore === fornitoreInModifica.id) filtri.fornitore = null;
+        ritornoFornitore = null;
         return apriFornitori();
       }).catch(function (errore) {
         txt($('#errForForm'), ctx.messaggio(errore, 'Eliminazione non riuscita. Riprova.'));
@@ -499,13 +511,24 @@
     }, eliminaCategoria);
 
     $('#btnNuovoFor').addEventListener('click', function () { apriFormFornitore(null); });
-    $('#btnForAnnulla').addEventListener('click', function () { chiudiVista('#forElenco', '#forForm'); });
+    $('#btnForAnnulla').addEventListener('click', function () {
+      if (ritornoFornitore && fornitoreInModifica) {
+        var torna = ritornoFornitore;
+        ritornoFornitore = null;
+        torna(fornitoreInModifica.id);
+        return;
+      }
+      chiudiVista('#forElenco', '#forForm');
+    });
     $('#btnForSalva').addEventListener('click', salvaFornitore);
     ctx.confermaInline($('#btnForElimina'), function () {
       var n = fornitoreInModifica ? fornitoreInModifica.prodotti : 0;
       return n ? 'Conferma (' + plurale(n, 'prodotto resta', 'prodotti restano') + ' senza fornitore)' : 'Conferma eliminazione';
     }, eliminaFornitore);
 
-    return { apriProdotti: apriProdotti, apriCategorie: apriCategorie, apriFornitori: apriFornitori };
+    return {
+      apriProdotti: apriProdotti, apriCategorie: apriCategorie, apriFornitori: apriFornitori,
+      modificaFornitore: function (fornitore, ritorno) { apriFormFornitore(fornitore, ritorno); }
+    };
   };
 })();
