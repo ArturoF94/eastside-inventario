@@ -7,11 +7,11 @@
 <title>Inventario · Eastside Pub &amp; Steakhouse</title>
 <meta name="robots" content="noindex, nofollow, noarchive">
 <meta name="theme-color" content="#282A28">
-<link rel="icon" href="assets/logo-quadrato.svg?v=39660e1" type="image/svg+xml">
+<link rel="icon" href="assets/logo-quadrato.svg?v=e959a3b" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/style.css?v=39660e1">
+<link rel="stylesheet" href="assets/style.css?v=e959a3b">
 <style>
   /* ---- specifico della pagina inventario (tablet) ---- */
   :root { --danger: #b5472a; --ok: #2f7d27; --warn: #a9701f; --ink: #20221f; --ink-2: #4a4e46; --line-l: #d9dcd3; }
@@ -218,7 +218,7 @@
 
 <header class="inv-top" id="invTop" hidden>
   <div class="brand">
-    <img src="assets/logo-quadrato.svg?v=39660e1" alt="Eastside">
+    <img src="assets/logo-quadrato.svg?v=e959a3b" alt="Eastside">
     <div class="who"><b>Inventario</b><span id="whoName">—</span></div>
   </div>
   <button class="linkbtn" id="btnEsci" type="button">Esci</button>
@@ -399,6 +399,36 @@
       <p class="msg-err" id="errCat" role="alert"></p>
       <div id="catLista"></div>
     </div>
+    <div id="catDettaglio" hidden>
+      <div class="testa-i">
+        <button class="btn-s" id="catDetIndietro" type="button">‹ Categorie</button>
+        <div class="az"><button class="btn-s" id="catDetModifica" type="button">Modifica</button></div>
+      </div>
+      <h2 class="h-i" id="catDetTitolo" style="margin-top:10px">Categoria</h2>
+      <p class="det-contatti" id="catDetContatti"></p>
+      <p class="msg-err" id="errCatDet" role="alert"></p>
+      <div class="card-i">
+        <div class="testa-i">
+          <h2 id="catDetConteggio" style="margin:0">Prodotti di questa categoria</h2>
+          <div class="az"><button class="btn-p" id="catDetAggiungi" type="button" aria-expanded="false" aria-controls="catDetPannello">+ Aggiungi prodotti</button></div>
+        </div>
+        <div class="det-pannello" id="catDetPannello" hidden>
+          <div class="filtri-ass">
+            <input type="search" id="catDetCerca" placeholder="Cerca tra i prodotti da aggiungere…" aria-label="Cerca tra i prodotti da aggiungere" autocomplete="off">
+            <select id="catDetAltro" aria-label="Filtra per fornitore" style="grid-column: 1 / -1"></select>
+          </div>
+          <div class="ass-barra">
+            <span id="catDetSel">0 selezionati</span>
+            <button class="btn-s" id="catDetSelVis" type="button">Seleziona visibili</button>
+            <button class="btn-p" id="catDetConferma" type="button" disabled>Aggiungi</button>
+          </div>
+          <p class="sub-i" id="catDetAvviso" style="margin:0 0 8px"></p>
+          <div class="elenco" id="catDetCandidati"></div>
+        </div>
+        <input type="search" class="det-cerca" id="catDetCercaAss" placeholder="Cerca tra i prodotti della categoria…" aria-label="Cerca tra i prodotti della categoria" autocomplete="off" hidden>
+        <div id="catDetProdotti"></div>
+      </div>
+    </div>
     <div id="catForm" hidden>
       <h2 class="h-i" id="catFormTitolo">Nuova categoria</h2>
       <div class="card-i">
@@ -467,7 +497,7 @@
         <div class="det-pannello" id="forDetPannello" hidden>
           <div class="filtri-ass">
             <input type="search" id="forDetCerca" placeholder="Cerca tra i prodotti da aggiungere…" aria-label="Cerca tra i prodotti da aggiungere" autocomplete="off">
-            <select id="forDetCategoria" aria-label="Filtra per categoria" style="grid-column: 1 / -1"></select>
+            <select id="forDetAltro" aria-label="Filtra per categoria" style="grid-column: 1 / -1"></select>
           </div>
           <div class="ass-barra">
             <span id="forDetSel">0 selezionati</span>
@@ -533,15 +563,15 @@
 </section>
 </main>
 
-<script src="assets/ui.js?v=39660e1"></script>
-<script src="assets/access.js?v=39660e1"></script>
-<script src="assets/db.js?v=39660e1"></script>
-<script src="assets/inventario-conta.js?v=39660e1"></script>
-<script src="assets/inventario-titolare.js?v=39660e1"></script>
-<script src="assets/inventario-catalogo.js?v=39660e1"></script>
-<script src="assets/inventario-utenti.js?v=39660e1"></script>
-<script src="assets/inventario-assegna.js?v=39660e1"></script>
-<script src="assets/inventario-fornitore.js?v=39660e1"></script>
-<script src="assets/inventario-app.js?v=39660e1"></script>
+<script src="assets/ui.js?v=e959a3b"></script>
+<script src="assets/access.js?v=e959a3b"></script>
+<script src="assets/db.js?v=e959a3b"></script>
+<script src="assets/inventario-conta.js?v=e959a3b"></script>
+<script src="assets/inventario-titolare.js?v=e959a3b"></script>
+<script src="assets/inventario-catalogo.js?v=e959a3b"></script>
+<script src="assets/inventario-utenti.js?v=e959a3b"></script>
+<script src="assets/inventario-assegna.js?v=e959a3b"></script>
+<script src="assets/inventario-dettaglio.js?v=e959a3b"></script>
+<script src="assets/inventario-app.js?v=e959a3b"></script>
 </body>
 </html>

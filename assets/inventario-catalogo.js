@@ -26,6 +26,7 @@
     var selezione = {};
     var prodottoInModifica = null;
     var categoriaInModifica = null;
+    var ritornoCategoria = null;   // se la modifica parte dal dettaglio, ci si torna dopo
     var fornitoreInModifica = null;
     var ritornoFornitore = null;   // se la modifica parte dal dettaglio, ci si torna dopo
 
@@ -302,6 +303,8 @@
        CATEGORIE
        ============================================================ */
     function apriCategorie() {
+      $('#catDettaglio').hidden = true;
+      ritornoCategoria = null;
       chiudiVista('#catElenco', '#catForm');
       txt($('#errCat'), '');
       $('#catLista').textContent = 'Caricamento…';
@@ -326,13 +329,15 @@
         b.type = 'button';
         b.appendChild(el('span', c.nome, 'nm'));
         b.appendChild(el('span', plurale(c.prodotti, 'prodotto', 'prodotti'), 'dx'));
-        b.addEventListener('click', function () { apriFormCategoria(c); });
+        b.addEventListener('click', function () { ctx.moduli.categoria.apri(c.id); });
         area.appendChild(b);
       });
     }
 
-    function apriFormCategoria(categoria) {
+    function apriFormCategoria(categoria, ritorno) {
       categoriaInModifica = categoria || null;
+      ritornoCategoria = ritorno || null;
+      $('#catDettaglio').hidden = true;
       txt($('#errCatForm'), '');
       txt($('#catFormTitolo'), categoria ? 'Modifica categoria' : 'Nuova categoria');
       $('#cNome').value = categoria ? categoria.nome : '';
@@ -349,9 +354,14 @@
       txt($('#errCatForm'), '');
       var pulsante = $('#btnCatSalva');
       pulsante.disabled = true;
-      DB.inventarioCategoriaSalva({ id: categoriaInModifica && categoriaInModifica.id, nome: nome }).then(function () {
+      DB.inventarioCategoriaSalva({ id: categoriaInModifica && categoriaInModifica.id, nome: nome }).then(function (esito) {
         pulsante.disabled = false;
         ctx.notifica('Categoria salvata', 'success');
+        if (ritornoCategoria) {
+          var torna = ritornoCategoria;
+          ritornoCategoria = null;
+          return torna(esito && esito.categoria ? esito.categoria : categoriaInModifica.id);
+        }
         return apriCategorie();
       }).catch(function (errore) {
         pulsante.disabled = false;
@@ -364,6 +374,7 @@
       DB.inventarioCategoriaElimina(categoriaInModifica.id).then(function (esito) {
         ctx.notifica('Categoria eliminata' + (esito.prodotti_liberati ? ' · ' + plurale(esito.prodotti_liberati, 'prodotto resta', 'prodotti restano') + ' senza categoria' : ''), 'success');
         if (filtri.categoria === categoriaInModifica.id) filtri.categoria = null;
+        ritornoCategoria = null;
         return apriCategorie();
       }).catch(function (errore) {
         txt($('#errCatForm'), ctx.messaggio(errore, 'Eliminazione non riuscita. Riprova.'));
@@ -503,7 +514,15 @@
     ctx.confermaInline($('#btnProdElimina'), function () { return 'Conferma eliminazione'; }, eliminaProdotto);
 
     $('#btnNuovaCat').addEventListener('click', function () { apriFormCategoria(null); });
-    $('#btnCatAnnulla').addEventListener('click', function () { chiudiVista('#catElenco', '#catForm'); });
+    $('#btnCatAnnulla').addEventListener('click', function () {
+      if (ritornoCategoria && categoriaInModifica) {
+        var torna = ritornoCategoria;
+        ritornoCategoria = null;
+        torna(categoriaInModifica.id);
+        return;
+      }
+      chiudiVista('#catElenco', '#catForm');
+    });
     $('#btnCatSalva').addEventListener('click', salvaCategoria);
     ctx.confermaInline($('#btnCatElimina'), function () {
       var n = categoriaInModifica ? categoriaInModifica.prodotti : 0;
@@ -528,7 +547,8 @@
 
     return {
       apriProdotti: apriProdotti, apriCategorie: apriCategorie, apriFornitori: apriFornitori,
-      modificaFornitore: function (fornitore, ritorno) { apriFormFornitore(fornitore, ritorno); }
+      modificaFornitore: function (fornitore, ritorno) { apriFormFornitore(fornitore, ritorno); },
+      modificaCategoria: function (categoria, ritorno) { apriFormCategoria(categoria, ritorno); }
     };
   };
 })();
