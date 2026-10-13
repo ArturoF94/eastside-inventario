@@ -373,6 +373,7 @@
        FORNITORI
        ============================================================ */
     function apriFornitori() {
+      $('#forAssegna').hidden = true;
       chiudiVista('#forElenco', '#forForm');
       txt($('#errFor'), '');
       $('#forLista').textContent = 'Caricamento…';
@@ -397,7 +398,8 @@
         b.type = 'button';
         var nome = el('span', null, 'nm');
         nome.appendChild(document.createTextNode(f.nome));
-        if (f.telefono) nome.appendChild(el('small', f.telefono));
+        var contatti = [f.telefono, f.email].filter(Boolean).join(' · ');
+        if (contatti) nome.appendChild(el('small', contatti));
         b.appendChild(nome);
         b.appendChild(el('span', plurale(f.prodotti, 'prodotto', 'prodotti'), 'dx'));
         b.addEventListener('click', function () { apriFormFornitore(f); });
@@ -411,6 +413,7 @@
       txt($('#forFormTitolo'), fornitore ? 'Modifica fornitore' : 'Nuovo fornitore');
       $('#fNome').value = fornitore ? fornitore.nome : '';
       $('#fTel').value = fornitore && fornitore.telefono ? fornitore.telefono : '';
+      $('#fEmail').value = fornitore && fornitore.email ? fornitore.email : '';
       var elimina = $('#btnForElimina');
       elimina.hidden = !fornitore;
       resetConferma(elimina, 'Elimina');
@@ -420,12 +423,16 @@
 
     function salvaFornitore() {
       var nome = $('#fNome').value.trim();
+      var email = $('#fEmail').value.trim();
       if (!nome) { txt($('#errForForm'), 'Scrivi il nome del fornitore.'); return; }
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        txt($('#errForForm'), 'L\'email non è valida (esempio: ordini@fornitore.it).'); return;
+      }
       txt($('#errForForm'), '');
       var pulsante = $('#btnForSalva');
       pulsante.disabled = true;
       DB.inventarioFornitoreSalva({
-        id: fornitoreInModifica && fornitoreInModifica.id, nome: nome, telefono: $('#fTel').value.trim()
+        id: fornitoreInModifica && fornitoreInModifica.id, nome: nome, telefono: $('#fTel').value.trim(), email: email
       }).then(function () {
         pulsante.disabled = false;
         ctx.notifica('Fornitore salvato', 'success');

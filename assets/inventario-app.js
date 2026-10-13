@@ -56,6 +56,7 @@
   moduli.titolare = window.InventarioModuli.titolare(ctx);
   moduli.catalogo = window.InventarioModuli.catalogo(ctx);
   moduli.utenti = window.InventarioModuli.utenti(ctx);
+  moduli.assegna = window.InventarioModuli.assegna(ctx);
 
   var SCHEDE = {
     conta: { tab: '#tabConta', pannello: '#pConta', apri: function () { return moduli.conta.apri(); } },

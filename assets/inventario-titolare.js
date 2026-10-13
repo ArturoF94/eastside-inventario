@@ -144,6 +144,13 @@
           var titolo = el('h3', nome);
           var tel = perFornitore[nome][0].fornitore_telefono;
           if (tel) titolo.appendChild(el('span', '  ' + tel, 'tel'));
+          var posta = perFornitore[nome][0].fornitore_email;
+          if (posta) {
+            titolo.appendChild(el('span', '  ', 'tel'));
+            var collegamento = el('a', posta, 'tel');
+            collegamento.href = 'mailto:' + posta;
+            titolo.appendChild(collegamento);
+          }
           gruppo.appendChild(titolo);
           perFornitore[nome].forEach(function (r) {
             var rr = el('div', null, 'ordine-r');

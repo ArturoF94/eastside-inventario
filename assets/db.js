@@ -1031,7 +1031,8 @@
 
   DB.inventarioFornitoreSalva = function (fornitore) {
     return rpcOrThrow('inventario_fornitore_salva', {
-      p_id: fornitore.id || null, p_nome: fornitore.nome, p_telefono: fornitore.telefono || null
+      p_id: fornitore.id || null, p_nome: fornitore.nome, p_telefono: fornitore.telefono || null,
+      p_email: fornitore.email || null
     });
   };
 
